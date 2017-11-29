@@ -8,113 +8,96 @@
 
 #include "Shape.h"
 
-ofColor fill_color = ofColor(0, 0, 0, 255);
-ofColor line_color = ofColor(0, 0, 0, 255);
-//ofColor fill_color = ofColor(255, 255, 255, 255);
-//ofColor line_color = ofColor(255, 255, 255, 255);
+//ofColor fill_color = ofColor(0, 0, 0, 255);
+//ofColor line_color = ofColor(0, 0, 0, 255);
 
 void Circle::draw(int off_x, int off_y, int w, int h) {
+
+    if (opaque) setFilled(true);
+
     float zoom = float(w);
     ofPoint offset(off_x, off_y);
     ofPushStyle();
     filled? ofFill() : ofNoFill();
-    //ofEnableAntiAliasing();
-    ofSetLineWidth(2.0f);
-    // if (!opaque) {
-    //     ofSetColor(fill_color);
-    //     ofDrawCircle(offset+center*zoom, r*zoom);
-    //     ofSetColor(line_color);
-    //     ofNoFill();
-    //     ofDrawCircle(offset+center*zoom, r*zoom);
-    // } else {
-        //ofNoFill();
-        ofSetColor(line_color);
-        ofDrawCircle(offset+center*zoom, r*zoom);
-    //}
+    if (opaque) ofFill();
+    ofSetLineWidth(line_width);
+    ofSetColor(line_color);
+    ofDrawCircle(offset+ofPoint(x, y)*zoom, d/2*zoom);
+
     ofPopStyle();
 }
 
 void Line::draw(int off_x, int off_y, int w, int h) {
+
+    setFilled(false);
+
     float zoom = float(w);
     ofPoint offset(off_x, off_y);
     ofPushStyle();
-    filled? ofFill() : ofNoFill();
-    //ofEnableAntiAliasing();
-    ofSetLineWidth(2.0f);
+    ofSetLineWidth(line_width);
     ofSetColor(line_color);
-    ofNoFill();
-    ofDrawLine(offset+v[0]*zoom, offset+v[1]*zoom);
-    //ofDrawBitmapString(ofToString(length), offset+v[0]*zoom);
+    ofDrawLine(offset+ofPoint(x1, y1)*zoom, offset+ofPoint(x2, y2)*zoom);
     ofPopStyle();
 }
 
-void Triangle::draw(int off_x, int off_y, int w, int h) {
-    float zoom = float(w);
-    ofPoint offset(off_x, off_y);
-    ofPushStyle();
-    filled? ofFill() : ofNoFill();
-    //ofEnableAntiAliasing();
-    ofSetLineWidth(2.0f);
-     ofSetColor(fill_color);
-     ofDrawTriangle(offset+v[0]*zoom, offset+v[1]*zoom, offset+v[2]*zoom);
-
-    ofSetColor(line_color);
-    ofNoFill();
-    ofDrawTriangle(offset+v[0]*zoom, offset+v[1]*zoom, offset+v[2]*zoom);
-
-    //ofDrawBitmapString(ofToString(area), offset+v[0]*zoom);
-    ofPopStyle();
-}
 
 void Rectangle::draw(int off_x, int off_y, int w, int h) {
     float zoom = float(w);
     ofPoint offset(off_x, off_y);
     ofPushStyle();
     filled? ofFill() : ofNoFill();
-    //ofEnableAntiAliasing();
-    ofSetLineWidth(2.0f);
-    
-    ofSetRectMode(OF_RECTMODE_CENTER);
 
-    ofPushMatrix();
-    
-    
-    ofTranslate(offset+center*zoom);
-    ofRotate(angle);
-    
-    ofSetColor(fill_color);
-    //ofDrawRectangle(offset+center*zoom, width*zoom, height*zoom);
-    ofDrawRectangle(ofPoint(0, 0), width*zoom, height*zoom);
-    
-    //ofDrawRectangle(offset+min*zoom, width*zoom, height*zoom);
-
+    ofSetLineWidth(line_width);
     ofSetColor(line_color);
-    ofNoFill();
-    ofDrawRectangle(ofPoint(0, 0), width*zoom, height*zoom);
-    
-    
-    ofPopMatrix();
-    
-    ofSetRectMode(OF_RECTMODE_CORNER);
-    
+    ofDrawRectangle(offset+ofPoint(x, y)*zoom, this->w*zoom, this->h*zoom);
+
     ofPopStyle();
 }
 
 void Image::draw(int off_x, int off_y, int w, int h) {
 
     ofPushStyle();
-    
-    //cout << "draw " << shapes.size() << endl;
 
-//    ofColor bg_color = ofColor(255, 255, 255, 255);
-//
-//    ofSetColor(bg_color);
-//    ofFill();
-//    ofDrawRectangle(off_x, off_y, w, h);
-    
-    
     for (int i = 0; i < shapes.size(); i++) {
-        shapes[i]->draw(off_x, off_y, w, h);
+        float zoom = float(w);
+
+        ofPushMatrix();
+        ofTranslate(off_x+w*0.5f+w*shapes[i]->tx, off_y+h*0.5f+h*shapes[i]->ty);
+        ofRotate(shapes[i]->angle);
+
+        shapes[i]->draw(0, 0, w, h);
+        ofPopMatrix();
+
+        shapes[i]->makeLabel();
+
+        ofPushMatrix();
+        ofTranslate(off_x, off_y);
+        ofDrawBitmapString(shapes[i]->label, 5, 13);
+        ofPopMatrix();
+       //
+    //    ofPushMatrix();
+    //    ofTranslate(off_x+w*0.5f+w*shapes[i]->tx, off_y+h*0.5f+h*shapes[i]->ty);
+       //
+    //    ofPath path;
+    //    for (auto &p: shapes[i]->points) {
+    //        path.lineTo(p * zoom);
+    //    }
+    //    path.close();
+    //    path.setFilled(false);
+    //    path.setStrokeWidth(1.0f);
+    //    path.setStrokeColor(ofColor::red);
+    //    path.draw();
+       //
+    //    ofPoint offset(0, 0);
+    //    ofSetLineWidth(1.0f);
+    //    ofNoFill();
+    //    ofSetColor(ofColor::grey);
+    //    ofDrawRectangle(ofPoint(shapes[i]->min.x,
+    //                                   shapes[i]->min.y)*zoom,
+    //                                   (shapes[i]->max.x-shapes[i]->min.x)*zoom,
+    //                                   (shapes[i]->max.y-shapes[i]->min.y)*zoom);
+    //    ofPopMatrix();
+
     }
     ofPopStyle();
 }

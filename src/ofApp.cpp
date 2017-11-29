@@ -21,6 +21,10 @@ void ofApp::setup(){
         path = arguments[0];
         train_images_n = ofToInt(arguments[1]);
         test_images_n = ofToInt(arguments[2]);
+    } else {
+        path =  "/Users/sk/data/shapes";
+        train_images_n = 100;
+        test_images_n = 100;
     }
     randomPanes();
 }
@@ -34,7 +38,7 @@ void ofApp::generateImages(string path, string images_dir_name,
     file_list.open(file_list_path);
     cout << "open " << file_list_path << endl;
 
-    int batch_size = MIN(images_n, 5000);
+    int batch_size = MIN(images_n, 10000);
     int batches_n = MAX(1, images_n/batch_size);
 
     cout << "batches_n " << batches_n << " batch_size " << batch_size << endl;
@@ -56,7 +60,7 @@ void ofApp::generateImages(string path, string images_dir_name,
         for (int i = 0; i < batch_size; i++) {
 
             Image img;
-            img.makeRandom();
+            img.makeRandom(i % SHAPES_N);
 
             //cout << "makeRandom" << endl;
 
@@ -70,6 +74,9 @@ void ofApp::generateImages(string path, string images_dir_name,
             //cout << "fbo.end()" << endl;
 
             fbo.readToPixels(pixels);
+
+
+            img.shapes[0]->makeLabel();
 
             //cout << "fbo.readToPixels" << endl;
             string filename;
@@ -99,9 +106,9 @@ void ofApp::generateDataset(string path, int train_images_n, int test_images_n) 
 
     ofstream labels_list;
     labels_list.open(path + "/labels.txt");
-    for (int i = 0; i < SHAPES_N; i++) {
-        labels_list << shapeLabel((ShapeType)i) << endl;
-    }
+//    for (int i = 0; i < SHAPES_N; i++) {
+//        labels_list << shapeLabel((ShapeType)i) << endl;
+//    }
     // for (int i = 0; i < SHAPES_N; i++) {
     //     labels_list << shapeLabel((ShapeType)i) << "_filled" << endl;
     // }
@@ -113,9 +120,11 @@ void ofApp::generateDataset(string path, int train_images_n, int test_images_n) 
 
 void ofApp::randomPanes() {
 
+    int n = 0;
     for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            img[i][j].makeRandom();
+        for (int j = 0; j < 10; j++) {
+            img[i][j].makeRandom(n % SHAPES_N);
+            n++;
         }
     }
 }
@@ -128,15 +137,15 @@ void ofApp::update(){
 void ofApp::draw(){
 
     int size = IMAGE_SIZE;
-    int pad = IMAGE_PADDING;
-    int pad_y = IMAGE_PADDING*2;
+//    int pad = IMAGE_PADDING;
+//    int pad_y = IMAGE_PADDING*2;
 
     int pane_w = 0;
     int pane_h = 0;
 
     for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            img[i][j].draw(i*size, j*size, size, size);
+        for (int j = 0; j < 10; j++) {
+            img[i][j].draw(j*size, i*size, size, size);
         }
     }
 
@@ -146,11 +155,11 @@ void ofApp::draw(){
 
     if (generate_dataset) {
         generate_dataset = false;
-        //generateDataset(path, train_images_n, test_images_n);
-        generateDataset("/Users/sk/data/shapes", 10, 10);
+        generateDataset(path, train_images_n, test_images_n);
+        //generateDataset("/Users/sk/data/shapes", 10, 10);
     }
-    
-    for (int i = 0; i < 5; i++) {
+
+    for (int i = 0; i < 10; i++) {
         ofDrawLine(size*i, 0,
                    size*i, ofGetWindowHeight());
         ofDrawLine(0, size*i,

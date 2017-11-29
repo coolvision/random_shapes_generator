@@ -9,246 +9,272 @@
 #pragma once
 
 #include "ofMain.h"
-#include "Shape.h"
 
 #define IMAGE_SIZE 104
-#define IMAGE_PADDING 10
-#define IMAGE_SIZE_SAVE 64
 
-enum ShapeType {
-    ANY = -1,
-    LINE = 0,
-    POLYLINE,
-    TRIANGLE,
-    RECTANGLE,
-    CIRCLE,
-    SQUARE,
-    DOT,
-    ELLIPSE,
-    PENTAGON,
-    HEXAGON,
-    SHAPES_N
-};
+#define SHAPES_N 13
 
-std::string shapeLabel(ShapeType t);
+void getPolygon(vector<ofPoint> &points, int n, float min, float max,
+                bool equal = false, bool sorted = true, bool check_area = true);
+void getBoundingBox(vector<ofPoint> &points, ofPoint &min, ofPoint &max);
 
 class Shape {
 public:
-    Shape(): angle(0), filled(false), area(0), length(0), opaque(false) {}
+    Shape() {};
     virtual ~Shape() {};
-    ofPoint center;
+
+    float width = 1.0f;
+    float height = 1.0f;
+    float line_width = 2.0f;
+
+    ofColor fill_color = ofColor(0, 0, 0, 255);
+    ofColor line_color = ofColor(0, 0, 0, 255);
+
+    // bounding box
     ofPoint min;
     ofPoint max;
-    float angle;
-    float width;
-    float height;
-    float area;
-    float length;
+
+    int type;
     string label;
 
-    int vertices_n;
-    int line_segments_n;
+    bool filled = false;
+    bool opaque = false;
 
-    bool filled;
-    bool opaque;
+    float angle = 0.0f;
+    float tx = 0.0f;
+    float ty = 0.0f;
+    vector<ofPoint> points;
 
-    vector<ofPoint> v;
-
-    // "symmetric", "filled", etc...
-    vector<string> tags;
-
+    void makeLabel();
     virtual void makeRandom() = 0;
     virtual void draw(int off_x, int off_y, int w, int h) = 0;
     void setFilled(bool filled_in) {
         filled = filled_in;
     }
 };
-//
-//class Polygon: public Shape {
-//    
-//    void init(ofPoint center, float r) {
-//        label = shapeLabel(TRIANGLE);
-//        min.set(MIN(p1.x, MIN(p2.x, p3.x)), MIN(p1.y, MIN(p2.y, p3.y)));
-//        max.set(MAX(p1.x, MAX(p2.x, p3.x)), MAX(p1.y, MAX(p2.y, p3.y)));
-//        v.resize(3);
-//        v[0] = p1;
-//        v[1] = p2;
-//        v[2] = p3;
-//        center = (p1 + p2 + p3) / 3;
-//        line_segments_n = 3;
-//        vertices_n = 3;
-//        width = max.x - min.x;
-//        height = max.y - min.y;
-//        area = abs((p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y))/2);
-//    }
-//    
-//    void makeRandom() {
-//        area = 0.0f;
-//        while (area < 0.04 || area > 0.25)
-//            init(ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-//                 ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-//                 ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)));
-//    }
-//    
-//    void draw(int off_x, int off_y, int w, int h);
-//};
-//
-//class Pentagon: public Polygon {
-//
-//};
-//
-//class Hexagon: public Polygon {
-//    
-//    
-//    
-//};
-//
-//class Polyline: public Shape {
-//    
-//    
-//    
-//};
-//
-//class Ellipse: public Shape {
-//
-//    
-//    
-//};
 
 class Line: public Shape {
 public:
-    void init(ofPoint p1, ofPoint p2) {
-        label = shapeLabel(LINE);
-        v.resize(2);
-        v[0] = p1;
-        v[1] = p2;
-        center = (p1 + p2) / 2;
-        line_segments_n = 1;
-        vertices_n = 0;
-        min.set(MIN(p1.x, p2.x), MIN(p1.y, p2.y));
-        max.set(MAX(p1.x, p2.x), MAX(p1.y, p2.y));
-        width = max.x - min.x;
-        height = max.y - min.y;
-        length = ofDist(p1.x, p1.y, p2.x, p2.y);
-        //cout << "length " << length << " " << p1.x << " " << p1.y << " " << p2.x << " " << p2.y << endl;
-    }
+    float x1;
+    float y1;
+    float x2;
+    float y2;
     void makeRandom() {
-        length = 0.0f;
-        while (length < 0.25)
-            init(ofPoint(ofRandom(1.0f), ofRandom(1.0f)),
-                 ofPoint(ofRandom(1.0f), ofRandom(1.0f)));
-        //cout << "final length " << length << endl;
+        float l1 = (0.1 + ofRandom(1.0f) * 0.8);
+        x1 = 0;
+        y1 = -l1/2;
+        x2 = 0;
+        y2 = +l1/2;
+        min.set(x1, y1);
+        max.set(x2, y2);
     }
     void draw(int off_x, int off_y, int w, int h);
 };
 
-class Triangle: public Shape {
+class PolygonShape: public Shape {
 public:
-    void init(ofPoint p1, ofPoint p2, ofPoint p3) {
-        label = shapeLabel(TRIANGLE);
-        min.set(MIN(p1.x, MIN(p2.x, p3.x)), MIN(p1.y, MIN(p2.y, p3.y)));
-        max.set(MAX(p1.x, MAX(p2.x, p3.x)), MAX(p1.y, MAX(p2.y, p3.y)));
-        v.resize(3);
-        v[0] = p1;
-        v[1] = p2;
-        v[2] = p3;
-        center = (p1 + p2 + p3) / 3;
-        line_segments_n = 3;
-        vertices_n = 3;
-        width = max.x - min.x;
-        height = max.y - min.y;
-        area = abs((p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y))/2);
-    }
+    vector<ofPoint> points;
+    virtual void makeRandom() = 0;
+    void draw(int off_x, int off_y, int w, int h) {
+        float zoom = float(w);
+        ofPoint offset(off_x, off_y);
+        ofPath path;
+        for (auto &p: points) {
+            path.lineTo(offset + p * zoom);
+        }
+        path.close();
+
+        path.setFilled(filled);
+        path.setStrokeWidth(2.0f);
+        path.setStrokeColor(line_color);
+        path.setFillColor(fill_color);
+        path.draw();
+    };
+};
+
+class Polyline: public PolygonShape {
+public:
     void makeRandom() {
-        area = 0.0f;
-        while (area < 0.04 || area > 0.25)
-            init(ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-                 ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-                 ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)));
+        int n = 3 + floor(ofRandom(1.0f)*3);
+        for (int i = 0; i < n; i++) {
+            float x = (ofRandom(-1.0f, 1.0f) * 0.4);
+            float y = (ofRandom(-1.0f, 1.0f) * 0.4);
+            points.push_back(ofPoint(x, y));
+        }
+        getBoundingBox(points, min, max);
+    };
+    void draw(int off_x, int off_y, int w, int h) {
+
+        setFilled(false);
+
+        float zoom = float(w);
+        ofPoint offset(off_x, off_y);
+        ofPath path;
+        for (auto &p: points) {
+            path.lineTo(offset + p * zoom);
+        }
+        path.setFilled(false);
+        path.setStrokeWidth(2.0f);
+        path.setStrokeColor(line_color);
+        path.draw();
+    };
+};
+
+class Triangle: public PolygonShape {
+public:
+    void makeRandom() {
+        getPolygon(points, 3, 0.1, 0.4);
+        getBoundingBox(points, min, max);
     }
-    void draw(int off_x, int off_y, int w, int h);
+//    void draw(int off_x, int off_y, int w, int h);
 };
 
 class Rectangle: public Shape {
 public:
-    void init(ofPoint center, float w, float h, float angle) {
-        label = shapeLabel(RECTANGLE);
-        this->center = center;
-        width = w;
-        height = h;
-        area = width * height;
-        this->angle = angle;
-    }
-    virtual void makeRandom() {
-        area = 0.0f;
-        width = 1.0f;
-        height = 1.0f;
-        while (area < 0.04 || area > 0.4 ||
-            center.x - width/2 < 0 || center.x + width/2 > 1 ||
-            center.y - height/2 < 0 || center.y + height/2 > 1 ||
-            abs(1.0f-float(width)/float(height)) < 0.2) {
-            init(ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-                 ofRandom(0.1f, 0.9f),
-                 ofRandom(0.1f, 0.9f),
-                 ofRandom(0.0f, 180.0f));
-        }
+    float w;
+    float h;
+    float x;
+    float y;
+    void makeRandom() {
+        w = (0.1 + ofRandom(1.0f) * 0.5);
+        h = (0.1 + ofRandom(1.0f) * 0.5);
+        x = -w/2;
+        y = -h/2;
+        min.set(x, y);
+        max.set(x+w, y+h);
     };
     void draw(int off_x, int off_y, int w, int h);
 };
 
 class Circle: public Shape {
 public:
-    void init(ofPoint center, float r) {
-        label = shapeLabel(CIRCLE);
-        this->center = center;
-        this->r = r;
-        line_segments_n = 0;
-        vertices_n = 0;
-        min = center - ofPoint(r, r);
-        max = center + ofPoint(r, r);
-        width = max.x - min.x;
-        height = max.y - min.y;
-        area = M_PI * pow(r, 2);
-    }
-    float r;
-    virtual void makeRandom() {
-        area = 0.0f;
-        ofPoint min = ofPoint(ofRandom(0.2f, 0.8f), ofRandom(0.2f, 0.8f));
-        float d = ofRandom(0.2f, MIN(0.7, MIN(1.0f - min.x, 1.0f - min.y)));
-        init(min+ofPoint(d/2, d/2), d/2);
+    float x, y;
+    float d;
+    void makeRandom() {
+        d = (0.1 + ofRandom(1.0f) * 0.5) * width;
+        x = 0;
+        y = 0;
+        min.set(x-d/2, y-d/2);
+        max.set(x+d/2, y+d/2);
     };
     void draw(int off_x, int off_y, int w, int h);
 };
 
-// optional
 class Square: public Rectangle {
 public:
-    void init(ofPoint center, float side, float angle) {
-        Rectangle::init(center, side, side, angle);
-        label = shapeLabel(SQUARE);
-    }
     void makeRandom() {
-        while (area < 0.04 || area > 0.4 ||
-               center.x - width/2 < 0 || center.x + width/2 > 1 ||
-               center.y - height/2 < 0 || center.y + height/2 > 1) {
-            init(ofPoint(ofRandom(0.1f, 0.9f), ofRandom(0.1f, 0.9f)),
-                 ofRandom(0.1f, 0.9f),
-                 ofRandom(0.0f, 180.0f));
-        }
+        w = (0.1 + ofRandom(1.0f) * 0.5) * width;
+        h = w;
+        x = -w/2;
+        y = -w/2;
+        min.set(x, y);
+        max.set(x+w, y+h);
+    };
+};
+
+class Ellipse: public Shape {
+public:
+    float x, y, rx, ry;
+    void makeRandom() {
+        rx = (0.1 + ofRandom(1.0f) * 0.5);
+        ry = rx * (0.2 + ofRandom(1.0f) * 0.7);
+        x = 0;
+        y = 0;
+        min.set(x-rx/2, y-ry/2);
+        max.set(x+rx/2, y+ry/2);
+    };
+    void draw(int off_x, int off_y, int w, int h) {
+        float zoom = float(w);
+        ofPoint offset(off_x, off_y);
+        ofPushStyle();
+        filled? ofFill() : ofNoFill();
+        ofSetLineWidth(line_width);
+
+        ofSetColor(fill_color);
+        ofDrawEllipse(offset+ofPoint(x, y)*zoom, rx*zoom, ry*zoom);
+
+        ofSetColor(line_color);
+        ofDrawEllipse(offset+ofPoint(x, y)*zoom, rx*zoom, ry*zoom);
+
+        ofPopStyle();
+    };
+};
+
+class EqualTriangle: public Triangle {
+public:
+    void makeRandom() {
+        getPolygon(points, 3, 0.1, 0.4, true);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class Quad: public PolygonShape {
+public:
+    void makeRandom() {
+        getPolygon(points, 4, 0.1, 0.4);
+        getBoundingBox(points, min, max);
+    };
+};
+
+
+class Pentagon: public PolygonShape {
+public:
+    void makeRandom() {
+        getPolygon(points, 5, 0.1, 0.4);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class Hexagon: public PolygonShape {
+public:
+    void makeRandom() {
+        getPolygon(points, 6, 0.1, 0.4);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class EqualPentagon: public Pentagon {
+public:
+    void makeRandom() {
+        getPolygon(points, 5, 0.1, 0.3, true);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class EqualHexagon: public Hexagon {
+public:
+    void makeRandom() {
+        getPolygon(points, 6, 0.1, 0.3, true);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class CrossedPentagon: public Pentagon {
+public:
+    void makeRandom() {
+        getPolygon(points, 5, 0.1, 0.4, false, false, false);
+        getBoundingBox(points, min, max);
+    };
+};
+
+class CrossedHexagon: public Hexagon {
+public:
+    void makeRandom() {
+        getPolygon(points, 6, 0.1, 0.4, false, false, false);
+        getBoundingBox(points, min, max);
     };
 };
 
 class Dot: public Circle {
 public:
-    void init(ofPoint center) {
-        Circle::init(center, 0.05);
-        label = shapeLabel(DOT);
-        setFilled(true);
+    void makeRandom() {
         opaque = true;
-    }
-    virtual void makeRandom() {
-        ofPoint center = ofPoint(ofRandom(0.05, 0.95f), ofRandom(0.05, 0.95f));
-        init(center);
+        d = 0.05;
+        x = 0;
+        y = 0;
+        min.set(x-d/2, y-d/2);
+        max.set(x+d/2, y+d/2);
+        opaque = true;
     };
 };
 
@@ -261,7 +287,7 @@ public:
 
     string label;
 
-    void makeRandom();
+    void makeRandom(int i);
     void draw(int off_x, int off_y, int w, int h);
 
     void clear() {

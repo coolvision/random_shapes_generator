@@ -10,7 +10,7 @@ public:
 //    Pane p[12]; // p1, p2, p3, p4;
 //    Pane pane;
 
-    Image img[5][5];
+    Image img[5][10];
 
     std::vector<std::string> arguments;
     string path;

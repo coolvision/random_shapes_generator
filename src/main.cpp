@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
         }
     }
     
-    ofSetupOpenGL(IMAGE_SIZE*5,
+    ofSetupOpenGL(IMAGE_SIZE*10,
                   IMAGE_SIZE*5,
                   OF_WINDOW);
     
